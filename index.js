@@ -5,8 +5,9 @@ const md5 = require("blueimp-md5");
 let formHash = "###";
 let url = "###";
 let itvId = 0;
-let lstMsg = "###"
-let lstFormhash = "###"
+let lstMsg = "###";
+let lstFormhash = "###";
+let retry = 0;
 
 function getAlarms(val,later,before){
     var alarm=val;
@@ -29,10 +30,15 @@ function getFormHash(){
             formHash = getAlarms(body,"setcookie(\"last_message_key\",md5(a+\"fc","\"))");
             console.log(chalk.green("获取FormHash成功：" + formHash));
             console.log(chalk.cyanBright("开始初始化 Step2..."));
+            retry = 0;
             checkCookies();
         }
         else{
-            console.log(chalk.red("出现错误 " + response.statusCode));
+            console.log(chalk.red("出现错误 " + response.statusCode + " 重试..."));
+            if(retry < config.retry){
+                retry += 1;
+                getFormHash();
+            }
         }
     });
 }
@@ -58,13 +64,18 @@ function checkCookies(){
             lstFormhash = md5("fc"+formHash);
             url = "https://www.mcbbs.net/plugin.php?id=dc_signin:check&formhash=" + formHash + "&key=" + key + "&inajax=1&ajaxtarget=undefined";
             console.log(chalk.green("初始化结束"));
+            retry = 0;
             requestSignIn();
-            itvId = setInterval(requestSignIn, 20000);
+            itvId = setInterval(requestSignIn, config.timeout * 1000);
         } else {
             if (!error && response.statusCode === 200) {
                 console.log(chalk.red("Cookie无效"));
             } else {
-                console.log(chalk.red("出现错误 " + response.statusCode));
+                console.log(chalk.red("出现错误 " + response.statusCode + " 重试..."));
+                if(retry < config.retry){
+                    retry += 1;
+                    checkCookies();
+                }
             }
         }
     });
@@ -79,20 +90,30 @@ function requestSignIn(){
         headers: headers
     },function(error,response,body){
         if(!error&&response.statusCode===200){
-            console.log(body);
+            var date = new Date();
+            var Min = date.getMinutes();
+            var Hour = date.getHours();
+            var Sec = date.getSeconds();
+            console.log(chalk.green(Hour + ":" + Min + ":" + Sec + " Request Successfully"));
+            retry = 0;
         }
         else{
-            console.log(chalk.red("出现错误 " + response.statusCode));
-            clearInterval(itvId);
+            console.log(chalk.red("出现错误 " + response.statusCode + " 重试..."));
+            if(retry < config.retry){
+                retry += 1;
+            }
+            else{
+                clearInterval(itvId);
+            }
         }
     });
 }
 function init(){
-    console.log(chalk.green("======================="));
-    console.log(chalk.green("|  MCBBS Auto SignIn  |"));
-    console.log(chalk.green("|  By: Anschluss_zeit |"));
-    console.log(chalk.green("|  GPLv3.0-or-later   |"));
-    console.log(chalk.green("======================="));
+    console.log(chalk.green("============================="));
+    console.log(chalk.green("|  MCBBS Auto SignIn v1.0.0 |"));
+    console.log(chalk.green("|     By: Anschluss_zeit    |"));
+    console.log(chalk.green("|     GPLv3.0-or-later      |"));
+    console.log(chalk.green("============================="));
     console.log(chalk.yellow("项目开源地址(GPLv3.0)："));
     console.log(chalk.yellow("https://github.com/Anschluss-zeit/MCBBS_Auto_SignIn"));
     console.log(chalk.cyanBright("开始初始化 Step1..."));

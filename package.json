@@ -4,7 +4,7 @@
   "description": "MCBBS防断签脚本",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,10 @@
   "bugs": {
     "url": "https://github.com/Anschluss-zeit/MCBBS_Auto_SignIn/issues"
   },
-  "homepage": "https://github.com/Anschluss-zeit/MCBBS_Auto_SignIn#readme"
+  "homepage": "https://github.com/Anschluss-zeit/MCBBS_Auto_SignIn#readme",
+  "dependencies": {
+    "blueimp-md5": "^2.19.0",
+    "chalk": "^4.0.0",
+    "request": "^2.88.2"
+  }
 }
